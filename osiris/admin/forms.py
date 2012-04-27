@@ -5,7 +5,6 @@ from pyramid.threadlocal import get_current_request
 from sqlalchemy.orm.scoping import ScopedSession
 from formalchemy import forms
 from formalchemy import tables
-from pyramid_formalchemy.utils import TemplateEngine
 
 from zope.interface import implements
 from zope.component import adapts

@@ -117,20 +117,25 @@ class AdminListContext(BaseAdminContext):
         return get_model(self.request)
 
     def __getitem__(self, item):
+        model_class = self.request.model_class
+
         name = self.request.path.split('/')[-1] #view name
         if name == item:
             name = ''
 
-        mixin_name = '%sCustom%s_%s_%s_%s' % (
-            self.request.model_class.__name__, AdminItemContext.__name__,
+        registry = self.request.registry
+        factory_name = '%sCustom%s_%s_%s_%s' % (
+            model_class.__name__, AdminItemContext.__name__,
             self.request.route_name, name, self.request.method)
-        mixin = type(str(mixin_name), (AdminItemContext,), {})
-        factory = self.request.registry.pyramid_formalchemy_views.get(
-            mixin.__name__, mixin)
+        factory = registry.pyramid_formalchemy_views.get(factory_name)
+        if factory is None:
+            factory = type(factory_name, (AdminItemContext,), {})
+
         try:
             model = factory(self.request, item)
         except NotFound:
             raise KeyError()
+
         model.__parent__ = self
 
         return model
@@ -147,14 +152,22 @@ class AdminRootContext(BaseAdminContext):
     def __getitem__(self, item):
         self.request.model_name = item.title() + "Model"
         model_class = get_model(self.request)
-        mixin_name = '%sCustom%s_%s__%s' % (
+
+        registry = self.request.registry
+        factory_name = '%sCustom%s_%s__%s' % (
             model_class.__name__, AdminListContext.__name__,
             self.request.route_name, self.request.method)
-        mixin = type(mixin_name, (AdminListContext,), {})
-        factory = self.request.registry.pyramid_formalchemy_views.get(
-            mixin.__name__, mixin)
-        model = factory(self.request, item)
+        factory = registry.pyramid_formalchemy_views.get(factory_name)
+        if factory is None:
+            factory = type(factory_name, (AdminListContext,), {})
+
+        try:
+            model = factory(self.request, item)
+        except NotFound:
+            raise KeyError()
+
         model.__parent__ = self
+
         if hasattr(model, '__acl__'):
             # propagate permissions to parent
             self.__acl__ = model.__acl__
