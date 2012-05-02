@@ -3,21 +3,78 @@
 from zope.interface import Interface, Attribute
 
 __all__ = [
-    'IModelViewFactory',
+    'IAdminRootContext',
+    'IAdminListContext',
+    'IAdminItemContext',
+    'IAdminRootContextFactory',
+    'IAdminListContextFactory',
+    'IAdminItemContextFactory',
+    'IModelIndexViewFactory',
+    'IModelListViewFactory',
+    'IModelItemViewFactory',
     'IModelGrid',
     'IModelForm',
     'IModelAddForm',
     'IModelEditForm',
     'IModelViewForm',
     'IModelType',
-    'INewsModelType',
     ]
 
 
-class IModelViewFactory(Interface):
-    def getModelIndexView(self): pass
-    def getModelListView(self): pass
-    def getModelItemView(self): pass
+class IAdminContext(Interface):
+    request = Attribute("Request")
+    __parent__ = Attribute("Parent")
+
+    def fa_url(self, *args, **kwargs):
+        pass
+
+
+class IAdminRootContext(IAdminContext):
+    __fa_route_name__ = Attribute("fa_route_name")
+    __models__ = Attribute("Models")
+    __forms__ = Attribute("Forms")
+    __session_factory__ = Attribute("session_factory")
+    __query_factory__ = Attribute("query_factory")
+    __model_class__ = Attribute("model_class")
+    __admin_menu__ = Attribute("admin_menu")
+
+
+class IAdminListContext(IAdminContext):
+    pass
+
+
+class IAdminItemContext(IAdminContext):
+    pass
+
+
+class IAdminRootContextFactory(Interface):
+    def __call__(self, **kw):
+        pass
+
+
+class IAdminListContextFactory(Interface):
+    def __call__(self, **kw):
+        pass
+
+
+class IAdminItemContextFactory(Interface):
+    def __call__(self, **kw):
+        pass
+
+
+class IModelIndexViewFactory(Interface):
+    def __call__(self, **kw):
+        pass
+
+
+class IModelListViewFactory(Interface):
+    def __call__(self, **kw):
+        pass
+
+
+class IModelItemViewFactory(Interface):
+    def __call__(self, **kw):
+        pass
 
 
 class IModelIndexView(Interface):
@@ -52,15 +109,18 @@ class IModelItemViewFactory(Interface):
 class IModelGrid(Interface):
     def bind(self, instances, session=None, data=None, request=None): pass
     def render(self, **kw): pass
+    engine = Attribute("Engine")
 
 
 class IModelForm(Interface):
+    def get_form(self, model_class): pass
     def bind(self, model=None, session=None, data=None, request=None): pass
     def validate(self): pass
     def sync(self): pass
     def render(self, **kw): pass
     errors = Attribute("Errors")
     model = Attribute("Model")
+    engine = Attribute("Engine")
 
 
 class IModelAddForm(IModelForm):
@@ -76,8 +136,4 @@ class IModelViewForm(IModelForm):
 
 
 class IModelType(Interface):
-    pass
-
-
-class INewsModelType(IModelType):
     pass

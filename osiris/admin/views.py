@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
 
-from zope.interface import implements
+from zope.interface import implementer, classProvides
 from webhelpers.paginate import Page
 from formalchemy.fields import _pk
 from pyramid import httpexceptions as exc
 from pyramid.exceptions import NotFound
 from pyramid.i18n import get_locale_name
 from pyramid_formalchemy import actions
-from pyramid_formalchemy.utils import TemplateEngine
+# from pyramid_formalchemy.utils import TemplateEngine
 
 from osiris.admin.interface import (
-    IModelViewFactory,
+    IModelIndexView,
+    IModelListView,
+    IModelItemView,
+    IModelIndexViewFactory,
+    IModelListViewFactory,
+    IModelItemViewFactory,
     IModelGrid,
     IModelForm,
     IModelAddForm,
@@ -21,7 +26,7 @@ from osiris.admin.interface import (
 
 class BaseModelView(object):
 
-    engine = TemplateEngine()
+    # engine = TemplateEngine()
 
     actions_categories = ('buttons',)
     defaults_actions = actions.defaults_actions
@@ -39,14 +44,14 @@ class BaseModelView(object):
                 'default_theme_name', 'smoothness')
             request.cookies['_LOCALE_'] = theme
 
-    def breadcrumb(self, form=None, **kwargs):
-        request = self.request
-        model_name = request.model_name
-        items = []
-        items.append((request.fa_url(), 'root', 'root_url'))
-        if request.model_name:
-            items.append((request.fa_url(model_name), model_name, 'model_url'))
-        return items
+    # def breadcrumb(self, form=None, **kwargs):
+    #     request = self.request
+    #     model_name = request.model_name
+    #     items = []
+    #     items.append((request.fa_url(), 'root', 'root_url'))
+    #     if request.model_name:
+    #         items.append((request.fa_url(model_name), model_name, 'model_url'))
+    #     return items
 
     def render(self, **kwargs):
         request = self.request
@@ -72,20 +77,26 @@ class BaseModelView(object):
             model_name=request.model_name,
             model_label=model_label,
             model_plural=model_plural,
-            breadcrumb=self.breadcrumb(**kwargs),
             actions=request.actions,
+            title=request.context.title,
             )
 
         return kwargs
 
 
+@implementer(IModelIndexView)
 class ModelIndexView(BaseModelView):
+    classProvides(IModelIndexViewFactory)
+
     def index(self, **kwargs):
         request = self.request
-        return self.render(menu=request.admin_menu)
+        return self.render()
 
 
+@implementer(IModelListView)
 class ModelListView(BaseModelView):
+    classProvides(IModelListViewFactory)
+
     pager_args = dict(
         link_attr={
             'class': 'ui-pager-link ui-state-default ui-corner-all',
@@ -128,36 +139,46 @@ class ModelListView(BaseModelView):
     def get_grid(self):
         """return a Grid object"""
         request = self.request
-        return request.registry.getAdapter(request.model_class, IModelGrid)
+        grid = request.registry.getAdapter(request.model_class, IModelGrid)
+        # if not grid.engine:
+        #     grid.engine = self.engine
+        return grid
 
     def render_grid(self, **kwargs):
         """render the grid as html or json"""
         return self.render(is_grid=True, **kwargs)
 
 
+@implementer(IModelItemView)
 class ModelItemView(BaseModelView):
+    classProvides(IModelItemViewFactory)
+
     @actions.action()
     def show(self):
         request = self.request
+
         instance = request.model_instance
+        if not instance:
+            raise NotFound()
+
         form = self.get_form(IModelViewForm)
-        form.bind(model=instance, session=self.session, request=request)
+        form.bind(model=instance)
+
         return self.render(form=form)
 
     @actions.action()
     def new(self):
         request = self.request
         form = self.get_form(IModelAddForm)
-        form.bind(session=self.session, request=request)
         return self.render(form=form)
 
     @actions.action('new')
     def create(self):
         request = self.request
-        form = self.get_form(IModelAddForm)
 
-        data = request.POST
-        form.bind(data=data, session=self.session, request=request)
+        form = self.get_form(IModelAddForm)
+        form.bind(data=request.POST)
+
         if not form.validate():
             return self.render(form=form)
 
@@ -171,17 +192,7 @@ class ModelItemView(BaseModelView):
     @actions.action()
     def edit(self):
         request = self.request
-        instance = request.model_instance
-        if not instance:
-            raise NotFound()
 
-        form = self.get_form(IModelEditForm)
-        form.bind(model=instance, session=self.session, request=request)
-        return self.render(form=form)
-
-    @actions.action('edit')
-    def update(self):
-        request = self.request
         instance = request.model_instance
         if not instance:
             raise NotFound()
@@ -189,8 +200,19 @@ class ModelItemView(BaseModelView):
         form = self.get_form(IModelEditForm)
         form.bind(model=instance)
 
-        data = request.POST
-        form.bind(data=data, session=self.session, request=request)
+        return self.render(form=form)
+
+    @actions.action('edit')
+    def update(self):
+        request = self.request
+
+        instance = request.model_instance
+        if not instance:
+            raise NotFound()
+
+        form = self.get_form(IModelEditForm)
+        form.bind(model=instance, data=request.POST)
+
         if not form.validate():
             return self.render(form=form)
 
@@ -203,8 +225,8 @@ class ModelItemView(BaseModelView):
 
     def delete(self):
         request = self.request
-        instance = request.model_instance
 
+        instance = request.model_instance
         if not instance:
             raise NotFound()
 
@@ -215,21 +237,14 @@ class ModelItemView(BaseModelView):
 
     def get_form(self, form_interface):
         request = self.request
-        return request.registry.getAdapter(request.model_class, form_interface)
-
-
-class ModelViewFactory(object):
-    implements(IModelViewFactory)
-
-    def getModelIndexView(self):
-        return ModelIndexView
-
-    def getModelListView(self):
-        return ModelListView
-
-    def getModelItemView(self):
-        return ModelItemView
+        form = request.registry.getAdapter(request.model_class, form_interface)
+        # if not form.engine:
+        #     form.engine = self.engine
+        form.bind(session=self.session, request=request)
+        return form
 
 
 def includeme(config):
-    config.registry.registerUtility(ModelViewFactory(), IModelViewFactory)
+    config.registry.registerUtility(ModelIndexView, IModelIndexViewFactory)
+    config.registry.registerUtility(ModelListView, IModelListViewFactory)
+    config.registry.registerUtility(ModelItemView, IModelItemViewFactory)

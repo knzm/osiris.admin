@@ -6,7 +6,7 @@ from sqlalchemy.orm.scoping import ScopedSession
 from formalchemy import forms
 from formalchemy import tables
 
-from zope.interface import implements
+from zope.interface import implementer
 from zope.component import adapts
 
 from osiris.admin.interface import (
@@ -36,8 +36,8 @@ DELETE_LINK_TEMPLATE = '''\
 '''
 
 
+@implementer(IModelGrid)
 class GenericModelGrid(object):
-    implements(IModelGrid)
     adapts(IModelType)
 
     grid_class = tables.Grid
@@ -45,6 +45,7 @@ class GenericModelGrid(object):
     def __init__(self, model_class):
         self.model_class = model_class
         self.grid = self.grid_class(self.model_class)
+        self.grid.configure(pk=1)
 
     def bind(self, instances, session=None, data=None, request=None):
         if isinstance(session, ScopedSession):
@@ -81,16 +82,27 @@ class GenericModelGrid(object):
     def render(self, **kw):
         return self.grid.render(**kw)
 
+    def engine():
+        def fget(self):
+            return self.grid.engine
+        def fset(self, engine):
+            self.grid.engine = engine
+        return locals()
+    engine = property(**engine())
 
+
+@implementer(IModelAddForm, IModelEditForm)
 class GenericModelForm(object):
-    implements(IModelAddForm, IModelEditForm)
     adapts(IModelType)
 
     fieldset_class = forms.FieldSet
 
     def __init__(self, model_class):
         self.model_class = model_class
-        self.form = self.fieldset_class(self.model_class)
+        self.form = self.get_form(model_class)
+
+    def get_form(self, model_class):
+        return self.fieldset_class(self.model_class)
 
     def bind(self, model=None, session=None, data=None, request=None):
         if isinstance(session, ScopedSession):
@@ -115,9 +127,20 @@ class GenericModelForm(object):
     def model(self):
         return self.form.model
 
+    def engine():
+        def fget(self):
+            try:
+                return self.form.engine
+            except AttributeError:
+                return None
+        def fset(self, engine):
+            self.form.engine = engine
+        return locals()
+    engine = property(**engine())
 
+
+@implementer(IModelViewForm)
 class ModelViewForm(GenericModelForm):
-    implements(IModelViewForm)
 
     def __init__(self, model_class):
         super(ModelViewForm, self).__init__(model_class)

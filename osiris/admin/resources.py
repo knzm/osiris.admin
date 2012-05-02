@@ -1,175 +1,162 @@
 # -*- coding: utf-8 -*-
 
+from zope.interface import implementer, classProvides
 from sqlalchemy import exceptions as sqlalchemy_exceptions
+from pyramid.interfaces import IRequest
 from pyramid_formalchemy import actions
 from pyramid.exceptions import NotFound
+
+from osiris.admin import model_config, get_model_config
+from osiris.admin.interface import (
+    IAdminItemContext,
+    IAdminListContext,
+    IAdminRootContext,
+    IAdminRootContextFactory,
+    IAdminListContextFactory,
+    IAdminItemContextFactory,
+    )
 
 __all__ = ['AdminItemContext', 'AdminListContext', 'AdminContext']
 
 
-def get_model(request):
-    if request.model_class:
-        return request.model_class
-    model_name = request.model_name
-    model_class = None
-    if isinstance(request.models, list):
-        for model in request.models:
-            if model.__name__ == model_name:
-                model_class = model
-                break
-    elif hasattr(request.models, model_name):
-        model_class = getattr(request.models, model_name)
-    if model_class is None:
-        raise NotFound(request.path)
-    request.model_class = model_class
-    return model_class
+def fa_url(request, *args, **kwargs):
+    matchdict = request.matchdict.copy()
+    if 'traverse' in matchdict:
+        del matchdict['traverse']
+    if kwargs:
+        matchdict['_query'] = kwargs
+    return request.route_url(
+        request.route_name,
+        traverse=tuple(map(str, args)),
+        **matchdict)
 
 
-class BaseAdminContext(object):
-    def __init__(self, request, name):
-        self.__name__ = name
-        self.__parent__ = None
+@implementer(IAdminRootContext)
+class AdminRootContext(object):
+    classProvides(IAdminRootContextFactory)
+
+    def __init__(self, request):
         self.request = request
+        self.__parent__ = None
+        self.title = 'Admin'
 
-        if hasattr(self, '__fa_route_name__'):
-            request.route_name = self.__fa_route_name__
-            request.models = self.__models__
-            request.forms = self.__forms__
-            request.session_factory = self.__session_factory__
-            request.query_factory = self.__query_factory__
-            request.fa_url = self.fa_url
-            request.model_instance = None
-            request.model_class = None
-            request.model_name = None
-            request.model_id = None
-            request.relation = None
-            request.format = 'html'
-            if self.__model_class__:
-                request.model_class = self.__model_class__
-                request.model_name = self.__model_class__.__name__
-            request.admin_menu = self.__admin_menu__
+        request.route_name = self.__fa_route_name__
+        request.session_factory = self.__session_factory__
+        request.query_factory = self.__query_factory__
+        request.fa_url = self.fa_url
+        request.model_instance = None
+        request.model_class = None
+        request.model_name = None
+        request.model_id = None
+        request.relation = None
+        request.format = 'html'
+        request.admin_menu = self.__admin_menu__
 
-            request.actions = actions.RequestActions()
+        request.actions = actions.RequestActions()
 
-            langs = request.registry.settings.get('available_languages', '')
-            if langs:
-                if isinstance(langs, basestring):
-                    langs = langs.split()
-                request.actions['languages'] = actions.Languages(*langs)
+        langs = request.registry.settings.get('available_languages', '')
+        if langs:
+            if isinstance(langs, basestring):
+                langs = langs.split()
+            request.actions['languages'] = actions.Languages(*langs)
 
-            themes = request.registry.settings.get('available_themes', '')
-            if themes:
-                if isinstance(themes, basestring):
-                    themes = themes.split()
-                request.actions['themes'] = actions.Themes(*themes)
-
-    def _fa_url(self, *args, **kwargs):
-        matchdict = self.request.matchdict.copy()
-        if 'traverse' in matchdict:
-            del matchdict['traverse']
-        if kwargs:
-            matchdict['_query'] = kwargs
-        return self.request.route_url(
-            self.__fa_route_name__,
-            traverse=tuple([str(a) for a in args]),
-            **matchdict)
-
-
-class AdminItemContext(BaseAdminContext):
-
-    def __init__(self, request, name):
-        BaseAdminContext.__init__(self, request, name)
-        query = request.session_factory.query(request.model_class)
-        try:
-            request.model_instance = request.query_factory(
-                request, query, id=name)
-        except sqlalchemy_exceptions.SQLAlchemyError, exc:
-            log.exception(exc)
-            request.session_factory().rollback()
-            raise NotFound(request.path)
-
-        if request.model_instance is None:
-            raise NotFound(request.path)
-        request.model_id = name
+        themes = request.registry.settings.get('available_themes', '')
+        if themes:
+            if isinstance(themes, basestring):
+                themes = themes.split()
+            request.actions['themes'] = actions.Themes(*themes)
 
     def fa_url(self, *args, **kwargs):
-        return self._fa_url(*args[2:], **kwargs)
+        return fa_url(self.request, *args, **kwargs)
+
+    def __getitem__(self, item):
+        model_class = self.request.admin_menu.get(item)
+        if model_class is None:
+            raise KeyError()
+
+        registry = self.request.registry
+        factory = registry.getUtility(IAdminListContextFactory)
+        context = factory(self.request, name=item, parent=self)
+
+        return context
 
 
-class AdminListContext(BaseAdminContext):
+@implementer(IAdminListContext)
+class AdminListContext(object):
+    classProvides(IAdminListContextFactory)
 
-    def __init__(self, request, name=None):
-        BaseAdminContext.__init__(self, request, name)
-        if name is None:
-            # request.model_class and request.model_name are already set
-            model = request.model_class
-        else:
-            request.model_name = name
-            model = get_model(self.request)
-        if hasattr(model, '__acl__'):
-            # get permissions from SA class
-            self.__acl__ = model.__acl__
+    def __init__(self, request, name, parent):
+        self.request = request
+        self.__name__ = name
+        self.__parent__ = parent
+
+        model_class = self.request.admin_menu.get(name)
+        assert model_class
+
+        config = get_model_config(model_class)
+        self.title = config.get("title", name)
+
+        self.request.model_name = name
+        self.request.model_class = model_class
 
     def fa_url(self, *args, **kwargs):
-        return self._fa_url(*args[1:], **kwargs)
-
-    def get_model(self):
-        return get_model(self.request)
+        return fa_url(self.request, *args[1:], **kwargs)
 
     def __getitem__(self, item):
         model_class = self.request.model_class
+        assert model_class is not None
 
         name = self.request.path.split('/')[-1] #view name
         if name == item:
             name = ''
 
         registry = self.request.registry
-        factory_name = '%sCustom%s_%s_%s_%s' % (
-            model_class.__name__, AdminItemContext.__name__,
-            self.request.route_name, name, self.request.method)
-        factory = registry.pyramid_formalchemy_views.get(factory_name)
-        if factory is None:
-            factory = type(factory_name, (AdminItemContext,), {})
+        factory = registry.getUtility(IAdminItemContextFactory)
+        context = factory(self.request, name=item, parent=self)
 
-        try:
-            model = factory(self.request, item)
-        except NotFound:
+        return context
+
+
+@implementer(IAdminItemContext)
+class AdminItemContext(object):
+    classProvides(IAdminItemContextFactory)
+
+    def __init__(self, request, name, parent):
+        self.request = request
+        self.__name__ = name
+        self.__parent__ = parent
+
+        # request.model_class and request.model_name are already set
+        model_class = request.model_class
+        assert model_class is not None
+
+        config = get_model_config(model_class)
+        self.title = config.get("title", request.model_name)
+
+        instance = self.prepare_instance(name)
+        if instance is None:
             raise KeyError()
 
-        model.__parent__ = self
+        self.request.model_id = name
+        self.request.model_instance = instance
 
-        return model
+    def prepare_instance(self, name):
+        request = self.request
+        query = request.session_factory.query(request.model_class)
+        try:
+            model_instance = request.query_factory(request, query, id=name)
+        except sqlalchemy_exceptions.SQLAlchemyError, exc:
+            log.exception(exc)
+            request.session_factory().rollback()
+            return None
 
-
-class AdminRootContext(BaseAdminContext):
-
-    def __init__(self, request):
-        BaseAdminContext.__init__(self, request, None)
+        return model_instance
 
     def fa_url(self, *args, **kwargs):
-        return self._fa_url(*args, **kwargs)
+        return fa_url(self.request, *args[2:], **kwargs)
 
-    def __getitem__(self, item):
-        self.request.model_name = item.title() + "Model"
-        model_class = get_model(self.request)
 
-        registry = self.request.registry
-        factory_name = '%sCustom%s_%s__%s' % (
-            model_class.__name__, AdminListContext.__name__,
-            self.request.route_name, self.request.method)
-        factory = registry.pyramid_formalchemy_views.get(factory_name)
-        if factory is None:
-            factory = type(factory_name, (AdminListContext,), {})
-
-        try:
-            model = factory(self.request, item)
-        except NotFound:
-            raise KeyError()
-
-        model.__parent__ = self
-
-        if hasattr(model, '__acl__'):
-            # propagate permissions to parent
-            self.__acl__ = model.__acl__
-
-        return model
+def includeme(config):
+    config.registry.registerUtility(AdminRootContext, IAdminRootContextFactory)
+    config.registry.registerUtility(AdminListContext, IAdminListContextFactory)
+    config.registry.registerUtility(AdminItemContext, IAdminItemContextFactory)
