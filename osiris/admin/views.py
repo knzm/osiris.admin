@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from zope.interface import implementer, classProvides
+from zope.interface import implementer, provider
 from webhelpers.paginate import Page
 from formalchemy.fields import _pk
 from pyramid import httpexceptions as exc
@@ -84,18 +84,18 @@ class BaseModelView(object):
         return kwargs
 
 
+@provider(IModelIndexViewFactory)
 @implementer(IModelIndexView)
 class ModelIndexView(BaseModelView):
-    classProvides(IModelIndexViewFactory)
 
     def index(self, **kwargs):
         request = self.request
         return self.render()
 
 
+@provider(IModelListViewFactory)
 @implementer(IModelListView)
 class ModelListView(BaseModelView):
-    classProvides(IModelListViewFactory)
 
     pager_args = dict(
         link_attr={
@@ -149,9 +149,9 @@ class ModelListView(BaseModelView):
         return self.render(is_grid=True, **kwargs)
 
 
+@provider(IModelItemViewFactory)
 @implementer(IModelItemView)
 class ModelItemView(BaseModelView):
-    classProvides(IModelItemViewFactory)
 
     @actions.action()
     def show(self):

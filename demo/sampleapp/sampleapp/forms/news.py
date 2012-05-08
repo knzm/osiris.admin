@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from zope.interface import implementer
-from zope.component import adapts
+from zope.component import adapter
 
 from osiris.admin.interface import (
     IModelGrid,
@@ -19,8 +19,8 @@ from sampleapp.interface import INewsModelType
 
 
 @implementer(IModelAddForm, IModelEditForm)
+@adapter(INewsModelType)
 class NewsModelForm(GenericModelForm):
-    adapts(INewsModelType)
 
     def get_form(self, model_class):
         form = super(NewsModelForm, self).get_form(model_class)

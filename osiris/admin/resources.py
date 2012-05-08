@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from zope.interface import implementer, classProvides
+from zope.interface import implementer, provider
+
 from sqlalchemy import exceptions as sqlalchemy_exceptions
+
 from pyramid.interfaces import IRequest
-from pyramid_formalchemy import actions
 from pyramid.exceptions import NotFound
+from pyramid_formalchemy import actions
 
 from osiris.admin import model_config, get_model_config
 from osiris.admin.interface import (
@@ -31,9 +33,9 @@ def fa_url(request, *args, **kwargs):
         **matchdict)
 
 
+@provider(IAdminRootContextFactory)
 @implementer(IAdminRootContext)
 class AdminRootContext(object):
-    classProvides(IAdminRootContextFactory)
 
     def __init__(self, request):
         self.request = request
@@ -81,9 +83,9 @@ class AdminRootContext(object):
         return context
 
 
+@provider(IAdminListContextFactory)
 @implementer(IAdminListContext)
 class AdminListContext(object):
-    classProvides(IAdminListContextFactory)
 
     def __init__(self, request, name, parent):
         self.request = request
@@ -117,9 +119,9 @@ class AdminListContext(object):
         return context
 
 
+@provider(IAdminItemContextFactory)
 @implementer(IAdminItemContext)
 class AdminItemContext(object):
-    classProvides(IAdminItemContextFactory)
 
     def __init__(self, request, name, parent):
         self.request = request

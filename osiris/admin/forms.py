@@ -7,7 +7,7 @@ from formalchemy import forms
 from formalchemy import tables
 
 from zope.interface import implementer
-from zope.component import adapts
+from zope.component import adapter
 
 from osiris.admin.interface import (
     IModelGrid,
@@ -37,8 +37,8 @@ DELETE_LINK_TEMPLATE = '''\
 
 
 @implementer(IModelGrid)
+@adapter(IModelType)
 class GenericModelGrid(object):
-    adapts(IModelType)
 
     grid_class = tables.Grid
 
@@ -92,8 +92,8 @@ class GenericModelGrid(object):
 
 
 @implementer(IModelAddForm, IModelEditForm)
+@adapter(IModelType)
 class GenericModelForm(object):
-    adapts(IModelType)
 
     fieldset_class = forms.FieldSet
 
