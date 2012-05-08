@@ -53,6 +53,32 @@ class BaseModelView(object):
     #         items.append((request.fa_url(model_name), model_name, 'model_url'))
     #     return items
 
+    def update_resources(self):
+        """A hook to add some fanstatic resources"""
+        from js import jqueryui
+        from js import jqgrid
+        from fa.jquery.fanstatic_resources import fa_jqgrid
+
+        cookie = getattr(self.request, 'cookies', {})
+
+        # default_theme = 'smoothness'
+        # theme = cookie.get('_THEME_', default_theme)
+        # try:
+        #     jqueryui_theme = getattr(jqueryui, theme)
+        # except AttributeError:
+        #     pass
+        # else:
+        #     jqueryui_theme.need()
+
+        # fa_admin.need()
+
+        lang = cookie.get('_LOCALE_', 'en')
+        jqgrid_i18n = getattr(jqgrid, 'jqgrid_i18n_%s' % lang,
+                              jqgrid.jqgrid_i18n_en)
+        jqgrid_i18n.need()
+
+        fa_jqgrid.need()
+
     def render(self, **kwargs):
         request = self.request
         if request.format != 'html':
@@ -62,21 +88,27 @@ class BaseModelView(object):
             else:
                 raise NotFound()
 
-        if request.model_class:
-            from pyramid_formalchemy.i18n import I18NModel
-            request.model_class = model_class = I18NModel(
-                request.model_class, request)
-            request.model_label = model_label = model_class.label
-            request.model_plural = model_plural = model_class.plural
-        else:
-            model_class = request.model_class
-            model_label = model_plural = ''
+        # if request.model_class:
+        #     from pyramid_formalchemy.i18n import I18NModel
+        #     request.model_class = model_class = I18NModel(
+        #         request.model_class, request)
+        #     request.model_label = model_label = model_class.label
+        #     request.model_plural = model_plural = model_class.plural
+        # else:
+        #     model_class = request.model_class
+        #     model_label = model_plural = ''
+
+        # from pyramid_formalchemy.i18n import I18NModel
+        # model_label = I18NModel(request.model_class, request).label
+        # request.model_label = model_label
+
+        self.update_resources()
 
         kwargs.update(
-            model_class=model_class,
+            model_class=request.model_class,
             model_name=request.model_name,
-            model_label=model_label,
-            model_plural=model_plural,
+            # model_label=model_label,
+            # model_plural=model_plural,
             actions=request.actions,
             title=request.context.title,
             )

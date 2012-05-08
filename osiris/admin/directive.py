@@ -26,15 +26,15 @@ def osiris_admin(config, route_name="admin", admin_menu=None,
     config.include('fa.jquery')
     # config.include('fa.bootstrap')
 
-    from js.bootstrap import bootstrap
+    # from js.bootstrap import bootstrap
+    from fa.bootstrap.fanstatic_resources import bootstrap
     def subscriber(event):
         bootstrap.need()
     config.add_subscriber(subscriber, IBeforeRender)
 
     config.override_asset(
-        to_override="fa.jquery:templates/forms/",
+        to_override="pyramid_formalchemy:templates/forms/",
         override_with="fa.bootstrap:templates/forms/")
-
 
     if root_factory:
         config.osiris_admin_routing(root_factory)
