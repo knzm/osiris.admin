@@ -16,6 +16,8 @@ from osiris.admin.interface import (
     IAdminRootContextFactory,
     IAdminListContextFactory,
     IAdminItemContextFactory,
+    IModel,
+    IModelConfig,
     )
 
 __all__ = ['AdminItemContext', 'AdminListContext', 'AdminContext']
@@ -42,6 +44,15 @@ class AdminRootContext(object):
         self.__parent__ = None
         self.title = 'Admin'
 
+        if self.__admin_menu__:
+            admin_menu = self.__admin_menu__
+        else:
+            models = request.registry.getUtilitiesFor(IModel)
+            admin_menu = sorted([name for name, ob in models])
+        admin_menu = [
+            get_model_config(self.request, name)
+            for name in admin_menu]
+
         request.route_name = self.__fa_route_name__
         request.session_factory = self.__session_factory__
         request.query_factory = self.__query_factory__
@@ -52,7 +63,7 @@ class AdminRootContext(object):
         request.model_id = None
         request.relation = None
         request.format = 'html'
-        request.admin_menu = self.__admin_menu__
+        request.admin_menu = admin_menu
 
         request.actions = actions.RequestActions()
 
@@ -72,7 +83,7 @@ class AdminRootContext(object):
         return fa_url(self.request, *args, **kwargs)
 
     def __getitem__(self, item):
-        model_class = self.request.admin_menu.get(item)
+        model_class = self.request.registry.queryUtility(IModel, name=item)
         if model_class is None:
             raise KeyError()
 
@@ -92,10 +103,10 @@ class AdminListContext(object):
         self.__name__ = name
         self.__parent__ = parent
 
-        model_class = self.request.admin_menu.get(name)
+        model_class = self.request.registry.queryUtility(IModel, name=name)
         assert model_class
 
-        config = get_model_config(model_class)
+        config = get_model_config(self.request, name)
         self.title = config.get("title", name)
 
         self.request.model_name = name
@@ -132,7 +143,7 @@ class AdminItemContext(object):
         model_class = request.model_class
         assert model_class is not None
 
-        config = get_model_config(model_class)
+        config = get_model_config(self.request, name)
         self.title = config.get("title", request.model_name)
 
         instance = self.prepare_instance(name)

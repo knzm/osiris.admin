@@ -14,7 +14,7 @@ __all__ = ['NewsModel']
 
 
 @provider(INewsModel)
-@model_config(title=u"新着記事")
+@model_config(name='news', title=u"新着記事")
 class NewsModel(BaseModel):
 
     __tablename__ = 'news'

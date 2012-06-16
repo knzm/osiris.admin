@@ -3,6 +3,7 @@
 from zope.interface import Interface, Attribute
 
 __all__ = [
+    'IAdminModelConfig',
     'IAdminRootContext',
     'IAdminListContext',
     'IAdminItemContext',
@@ -18,6 +19,7 @@ __all__ = [
     'IModelEditForm',
     'IModelViewForm',
     'IModel',
+    'IModelConfig',
     ]
 
 
@@ -136,4 +138,8 @@ class IModelViewForm(IModelForm):
 
 
 class IModel(Interface):
+    pass
+
+
+class IModelConfig(Interface):
     pass

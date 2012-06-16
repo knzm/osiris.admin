@@ -4,11 +4,11 @@ from collections import OrderedDict
 
 from pyramid.interfaces import IBeforeRender
 
+from .interface import IModel, IModelConfig
 from .resources import AdminRootContext
 
 
-def AdminRootContextFactory(route_name,
-                            session_factory, query_factory,
+def AdminRootContextFactory(route_name, session_factory, query_factory,
                             admin_menu):
     class AdminContext(AdminRootContext):
         __fa_route_name__ = route_name
@@ -18,9 +18,9 @@ def AdminRootContextFactory(route_name,
     return AdminContext
 
 
-def osiris_admin(config, route_name="admin", admin_menu=None,
-                 package=None, session_factory=None, query_factory=None,
-                 root_factory=None):
+def osiris_admin(config, route_name="admin", package=None,
+                 session_factory=None, query_factory=None,
+                 root_factory=None, admin_menu=None):
     # config.include('pyramid_formalchemy')
     config.include('pyramid_fanstatic')
     config.include('fa.jquery')
@@ -62,9 +62,6 @@ def osiris_admin(config, route_name="admin", admin_menu=None,
             else:
                 return query
 
-    admin_menu = OrderedDict([
-            (key, config.maybe_dotted(val))
-            for key, val in admin_menu or ()])
     root_factory = AdminRootContextFactory(
         route_name=route_name,
         session_factory=session_factory,
@@ -72,3 +69,13 @@ def osiris_admin(config, route_name="admin", admin_menu=None,
         admin_menu=admin_menu)
 
     config.osiris_admin_routing(root_factory)
+
+
+def add_model(config, model, name, title=None):
+    settings = {
+        'model': model,
+        'name': name,
+        'title': title,
+        }
+    config.registry.registerUtility(model, IModel, name=name)
+    config.registry.registerUtility(settings, IModelConfig, name=name)

@@ -6,14 +6,9 @@ from .resources import RootContext
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    # To be refactored
-    admin_menu = [
-            ('news', 'sampleapp.models.NewsModel'),
-            ]
-
     config = Configurator(settings=settings, root_factory=RootContext)
     config.include('osiris.admin')
-    config.osiris_admin(package='sampleapp', admin_menu=admin_menu)
+    config.osiris_admin(package='sampleapp')
     config.include('.models')
     config.include('.forms')
     config.include('.routing')
