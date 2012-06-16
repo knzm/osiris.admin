@@ -8,18 +8,18 @@ from osiris.admin.interface import (
     IModelAddForm,
     IModelEditForm,
     IModelViewForm,
-    IModelType,
+    IModel,
     )
 
 from formalchemy.fields import TextAreaFieldRenderer
 
 from osiris.admin.forms import GenericModelForm
 
-from sampleapp.interface import INewsModelType
+from sampleapp.interface import INewsModel
 
 
 @implementer(IModelAddForm, IModelEditForm)
-@adapter(INewsModelType)
+@adapter(INewsModel)
 class NewsModelForm(GenericModelForm):
 
     def get_form(self, model_class):

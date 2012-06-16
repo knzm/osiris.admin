@@ -15,7 +15,7 @@ from osiris.admin.interface import (
     IModelAddForm,
     IModelEditForm,
     IModelViewForm,
-    IModelType,
+    IModel,
     )
 
 __all__ = [
@@ -38,7 +38,7 @@ DELETE_LINK_TEMPLATE = '''\
 
 
 @implementer(IModelGrid)
-@adapter(IModelType)
+@adapter(IModel)
 class GenericModelGrid(object):
 
     grid_class = tables.Grid
@@ -120,7 +120,7 @@ class GenericModelGrid(object):
 
 
 @implementer(IModelAddForm, IModelEditForm)
-@adapter(IModelType)
+@adapter(IModel)
 class GenericModelForm(object):
 
     fieldset_class = forms.FieldSet

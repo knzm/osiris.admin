@@ -7,13 +7,13 @@ from zope.interface import provider
 
 from osiris.admin import model_config
 
-from sampleapp.interface import INewsModelType
+from sampleapp.interface import INewsModel
 from sampleapp.models.base import BaseModel
 
 __all__ = ['NewsModel']
 
 
-@provider(INewsModelType)
+@provider(INewsModel)
 @model_config(title=u"新着記事")
 class NewsModel(BaseModel):
 

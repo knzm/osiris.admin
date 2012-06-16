@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from osiris.admin.interface import IModelType
+from osiris.admin.interface import IModel
 
-class INewsModelType(IModelType):
+class INewsModel(IModel):
     pass

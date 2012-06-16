@@ -17,7 +17,7 @@ __all__ = [
     'IModelAddForm',
     'IModelEditForm',
     'IModelViewForm',
-    'IModelType',
+    'IModel',
     ]
 
 
@@ -135,5 +135,5 @@ class IModelViewForm(IModelForm):
     pass
 
 
-class IModelType(Interface):
+class IModel(Interface):
     pass
