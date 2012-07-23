@@ -143,7 +143,7 @@ class AdminItemContext(object):
         model_class = request.model_class
         assert model_class is not None
 
-        config = get_model_config(self.request, name)
+        config = get_model_config(self.request, request.model_name)
         self.title = config.get("title", request.model_name)
 
         instance = self.prepare_instance(name)
