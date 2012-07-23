@@ -25,14 +25,12 @@ __all__ = [
 ]
 
 EDIT_LINK_TEMPLATE = '''\
-<form action="%(url)s" method="GET" class="ui-grid-icon ui-widget-header ui-corner-all">
-<input type="submit" class="ui-grid-icon ui-icon ui-icon-pencil" title="%(label)s" value="%(label)s" />
-</form>
+<a href="%(url)s" class="btn btn-info" title="%(label)s">%(label)s</a>
 '''
 
 DELETE_LINK_TEMPLATE = '''\
 <form action="%(url)s" method="POST" class="ui-grid-icon ui-state-error ui-corner-all">
-<input type="submit" class="ui-icon ui-icon-circle-close" title="%(label)s" value="%(label)s" />
+<input type="submit" class="btn btn-danger" title="%(label)s" value="%(label)s" />
 </form>
 '''
 

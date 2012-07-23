@@ -6,7 +6,8 @@ from formalchemy.fields import _pk
 from pyramid import httpexceptions as exc
 from pyramid.exceptions import NotFound
 from pyramid.i18n import get_locale_name
-from pyramid_formalchemy import actions
+# from pyramid_formalchemy import actions
+from fa.bootstrap import actions
 # from pyramid_formalchemy.utils import TemplateEngine
 
 from osiris.admin.interface import (
