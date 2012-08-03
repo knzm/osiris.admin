@@ -11,25 +11,27 @@ from .interface import (
     IAdminItemContext,
     )
 
-def setup(config, root_factory):
+
+def setup(config, root_factory, route_name, url_prefix):
 
     ModelIndexView = config.registry.getUtility(IModelIndexViewFactory)
     ModelListView = config.registry.getUtility(IModelListViewFactory)
     ModelItemView = config.registry.getUtility(IModelItemViewFactory)
 
-    config.add_route('admin_redirect', 'admin')
-    config.add_route('admin', 'admin/*traverse', factory=root_factory)
+    config.add_route(route_name+'_redirect', url_prefix)
+    config.add_route(route_name, url_prefix+'/*traverse',
+                     factory=root_factory)
 
     def redirect(request):
-        """redirect /{route_name} to /{route_name}/"""
+        """redirect /admin to /admin/"""
         matchdict = request.matchdict
         url = request.route_url('admin', traverse=(), **matchdict)
         return exc.HTTPFound(location=url)
 
-    config.add_view(redirect, route_name='admin_redirect')
+    config.add_view(redirect, route_name=route_name+'_redirect')
 
-    # GET /admin
-    config.add_view(route_name="admin",
+    # GET /admin/
+    config.add_view(route_name=route_name,
                     context=IAdminRootContext,
                     request_method='GET',
                     permission='view',
@@ -37,7 +39,7 @@ def setup(config, root_factory):
                     renderer='osiris.admin:templates/admin/models.mak')
 
     # GET /admin/{model}
-    config.add_view(route_name="admin",
+    config.add_view(route_name=route_name,
                     context=IAdminListContext,
                     request_method='GET',
                     permission='view',
@@ -45,7 +47,7 @@ def setup(config, root_factory):
                     renderer='osiris.admin:templates/admin/listing.mak')
 
     # GET /admin/{model}/new
-    config.add_view(route_name="admin",
+    config.add_view(route_name=route_name,
                     context=IAdminListContext,
                     name='new',
                     request_method='GET',
@@ -54,7 +56,7 @@ def setup(config, root_factory):
                     renderer='osiris.admin:templates/admin/new.mak')
 
     # POST /admin/{model}
-    config.add_view(route_name="admin",
+    config.add_view(route_name=route_name,
                     context=IAdminListContext,
                     request_method='POST',
                     permission='new',
@@ -62,7 +64,7 @@ def setup(config, root_factory):
                     renderer='osiris.admin:templates/admin/new.mak')
 
     # GET /admin/{model}/{id}
-    config.add_view(route_name="admin",
+    config.add_view(route_name=route_name,
                     context=IAdminItemContext, name='',
                     request_method='GET',
                     permission='view',
@@ -70,7 +72,7 @@ def setup(config, root_factory):
                     renderer='osiris.admin:templates/admin/show.mak')
 
     # GET /admin/{model}/{id}/edit
-    config.add_view(route_name="admin",
+    config.add_view(route_name=route_name,
                     context=IAdminItemContext, name='edit',
                     request_method='GET',
                     permission='edit',
@@ -78,7 +80,7 @@ def setup(config, root_factory):
                     renderer='osiris.admin:templates/admin/edit.mak')
 
     # POST /admin/{model}/{id}/edit
-    config.add_view(route_name="admin",
+    config.add_view(route_name=route_name,
                     context=IAdminItemContext, name='edit',
                     request_method='POST',
                     permission='edit',
@@ -86,7 +88,7 @@ def setup(config, root_factory):
                     renderer='osiris.admin:templates/admin/edit.mak')
 
     # POST /admin/{model}/{id}
-    config.add_view(route_name="admin",
+    config.add_view(route_name=route_name,
                     context=IAdminItemContext, name='',
                     request_method='POST',
                     permission='edit',
@@ -94,7 +96,7 @@ def setup(config, root_factory):
                     renderer='json')
 
     # POST /admin/{model}/{id}/delete
-    config.add_view(route_name="admin",
+    config.add_view(route_name=route_name,
                     context=IAdminItemContext, name='delete',
                     request_method='POST',
                     permission='delete',
@@ -102,7 +104,7 @@ def setup(config, root_factory):
                     renderer='osiris.admin:templates/admin/edit.mak')
 
     # DELETE /admin/{model}/{id}
-    config.add_view(route_name="admin",
+    config.add_view(route_name=route_name,
                     context=IAdminItemContext, name='',
                     request_method='DELETE',
                     permission='delete',

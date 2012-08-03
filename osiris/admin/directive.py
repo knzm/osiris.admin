@@ -18,8 +18,8 @@ def AdminRootContextFactory(route_name, session_factory, query_factory,
     return AdminContext
 
 
-def osiris_admin(config, route_name="admin", package=None,
-                 session_factory=None, query_factory=None,
+def osiris_admin(config, route_name="admin", url_prefix="admin",
+                 package=None, session_factory=None, query_factory=None,
                  root_factory=None, admin_menu=None):
     # config.include('pyramid_formalchemy')
     config.include('pyramid_fanstatic')
@@ -68,7 +68,7 @@ def osiris_admin(config, route_name="admin", package=None,
         query_factory=query_factory,
         admin_menu=admin_menu)
 
-    config.osiris_admin_routing(root_factory)
+    config.osiris_admin_routing(root_factory, route_name, url_prefix)
 
 
 def add_model(config, model, name, title=None):
