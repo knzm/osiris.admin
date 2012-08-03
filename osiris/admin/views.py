@@ -151,6 +151,9 @@ class ModelListView(BaseModelView):
         else:
             pager = kwargs.pop('pager')
 
+        from fa.bootstrap import fanstatic_resources
+        fanstatic_resources.bootstrap.need()
+
         return self.render_grid(grid=grid, pager=pager)
 
     def get_page(self, **kwargs):
