@@ -2,6 +2,7 @@
 
 from collections import OrderedDict
 
+from zope.interface import directlyProvides
 from pyramid.interfaces import IBeforeRender
 
 from .interface import IModel, IModelConfig
@@ -71,11 +72,16 @@ def osiris_admin(config, route_name="admin", url_prefix="admin",
     config.osiris_admin_routing(root_factory, route_name, url_prefix)
 
 
-def add_model(config, model, name, title=None):
+def add_model(config, model, name, title=None, provides=IModel):
     settings = {
         'model': model,
         'name': name,
         'title': title,
         }
+    if isinstance(provides, (tuple, list)):
+        interfaces = provides
+    else:
+        interfaces = [provides]
+    directlyProvides(model, *interfaces)
     config.registry.registerUtility(model, IModel, name=name)
     config.registry.registerUtility(settings, IModelConfig, name=name)

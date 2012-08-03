@@ -3,8 +3,6 @@
 from sqlalchemy import UnicodeText, Integer
 from formalchemy import Column
 
-from zope.interface import provider
-
 from osiris.admin import model_config
 
 from sampleapp.interface import INewsModel
@@ -13,8 +11,7 @@ from sampleapp.models.base import BaseModel
 __all__ = ['NewsModel']
 
 
-@provider(INewsModel)
-@model_config(name='news', title=u"新着記事")
+@model_config(name='news', title=u"新着記事", provides=INewsModel)
 class NewsModel(BaseModel):
 
     __tablename__ = 'news'

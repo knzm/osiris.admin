@@ -10,9 +10,10 @@ __all__ = [
 class model_config(object):
     venusian = venusian
 
-    def __init__(self, name='', title=''):
+    def __init__(self, name='', title='', provides=None):
         self.name = name
         self.title = title
+        self.provides = provides
 
     def __call__(self, wrapped):
         settings = self.__dict__.copy()
