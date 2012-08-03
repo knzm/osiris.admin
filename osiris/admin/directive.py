@@ -7,6 +7,7 @@ from pyramid.interfaces import IBeforeRender
 
 from .interface import IModel, IModelConfig
 from .resources import AdminRootContext
+from .utils import guess_dbsession
 
 
 def AdminRootContextFactory(route_name, session_factory, query_factory,
@@ -20,7 +21,7 @@ def AdminRootContextFactory(route_name, session_factory, query_factory,
 
 
 def osiris_admin(config, route_name="admin", url_prefix="admin",
-                 package=None, session_factory=None, query_factory=None,
+                 session_factory=None, query_factory=None,
                  root_factory=None, admin_menu=None):
     # config.include('pyramid_formalchemy')
     config.include('pyramid_fanstatic')
@@ -44,17 +45,8 @@ def osiris_admin(config, route_name="admin", url_prefix="admin",
     if session_factory:
         session_factory = config.maybe_dotted(session_factory)
 
-    if package and not session_factory:
-        try:
-            models = config.maybe_dotted('%s.models' % package)
-        except ValueError:
-            pass
-        else:
-            # alchemy
-            session_factory = getattr(models, "DBSession", None)
-            if not session_factory:
-                # Akhet
-                session_factory = getattr(models, "Session", None)
+    if not session_factory:
+        session_factory = guess_dbsession(config)
 
     if not query_factory:
         def query_factory(request, query, id=None):

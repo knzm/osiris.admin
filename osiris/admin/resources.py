@@ -6,9 +6,10 @@ from sqlalchemy import exceptions as sqlalchemy_exceptions
 
 from pyramid.interfaces import IRequest
 from pyramid.exceptions import NotFound
+from pyramid.security import Allow, Authenticated, ALL_PERMISSIONS
 from pyramid_formalchemy import actions
 
-from osiris.admin import model_config, get_model_config
+from osiris.admin import model_config
 from osiris.admin.interface import (
     IAdminItemContext,
     IAdminListContext,
@@ -19,6 +20,8 @@ from osiris.admin.interface import (
     IModel,
     IModelConfig,
     )
+from osiris.admin.utils import get_model_config
+from osiris.auth import get_current_user
 
 __all__ = ['AdminItemContext', 'AdminListContext', 'AdminContext']
 
@@ -38,6 +41,11 @@ def fa_url(request, *args, **kwargs):
 @provider(IAdminRootContextFactory)
 @implementer(IAdminRootContext)
 class AdminRootContext(object):
+    __acl__ = [
+        (Allow, Authenticated, 'view'),
+        (Allow, 'admin', ALL_PERMISSIONS),
+        # (Allow, 'editor', ('view', 'new', 'edit', 'delete')),
+        ]
 
     def __init__(self, request):
         self.request = request
@@ -64,6 +72,8 @@ class AdminRootContext(object):
         request.relation = None
         request.format = 'html'
         request.admin_menu = admin_menu
+
+        request.current_user = get_current_user(self.request)
 
         request.actions = actions.RequestActions()
 

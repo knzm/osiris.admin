@@ -8,7 +8,8 @@ def main(global_config, **settings):
     """
     config = Configurator(settings=settings, root_factory=RootContext)
     config.include('osiris.admin')
-    config.osiris_admin(package='sampleapp')
+    config.osiris_admin()
+    config.osiris_auth()
     config.include('.models')
     config.include('.forms')
     config.include('.routing')

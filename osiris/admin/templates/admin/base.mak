@@ -24,11 +24,25 @@
               </ul>
             </li>
             <li class="divider-vertical"></li>
-            <li><p class="navbar-text">Hello!</p></li>
+            <%
+               if request.current_user:
+                   username = request.current_user.username
+               else:
+                   username = "guest"
+             %>\
+            <li><p class="navbar-text">Hello! ${ username|h }</p></li>
           </ul>
+          <%
+             try:
+                 logout_url = request.route_url('logout')
+             except KeyError:
+                 logout_url = None
+           %>
+          % if logout_url:
           <ul class="nav pull-right">
-            <li><a href="#">Logout</a></li>
+            <li><a href="${ logout_url }">Logout</a></li>
           </ul>
+          % endif
         </div>
       </div>
     </div>

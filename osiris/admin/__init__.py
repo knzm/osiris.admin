@@ -4,8 +4,8 @@ import venusian
 
 __all__ = [
     'model_config',
-    'get_model_config',
 ]
+
 
 class model_config(object):
     venusian = venusian
@@ -33,11 +33,6 @@ class model_config(object):
         return wrapped
 
 
-def get_model_config(request, name):
-    from osiris.admin.interface import IModelConfig
-    return request.registry.getUtility(IModelConfig, name=name)
-
-
 def includeme(config):
     config.add_directive('osiris_admin', 'osiris.admin.directive.osiris_admin')
     config.add_directive('add_model', 'osiris.admin.directive.add_model')
@@ -45,3 +40,4 @@ def includeme(config):
     config.include('osiris.admin.resources')
     config.include('osiris.admin.views')
     config.include('osiris.admin.forms')
+    config.include('osiris.auth')
