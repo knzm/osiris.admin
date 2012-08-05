@@ -11,25 +11,23 @@ class model_config(object):
     venusian = venusian
 
     def __init__(self, name='', title='', provides=None):
-        self.name = name
-        self.title = title
-        self.provides = provides
+        self.settings = {
+            "name": name,
+            "title": title,
+            "provides": provides,
+            }
 
-    def __call__(self, wrapped):
-        settings = self.__dict__.copy()
-
+    def register(self, scanner, name, wrapped):
+        settings = self.settings.copy()
         if not settings["name"]:
             settings["name"] = wrapped.__name__
-
         if not settings["title"]:
             settings["title"] = wrapped.__name__
+        config = scanner.config.with_package(self.info.module)
+        config.add_model(model=wrapped, **settings)
 
-        def callback(context, name, ob):
-            config = context.config.with_package(info.module)
-            config.add_model(model=ob, **settings)
-
-        info = self.venusian.attach(wrapped, callback, category='pyramid')
-
+    def __call__(self, wrapped):
+        self.info = self.venusian.attach(wrapped, self.register)
         return wrapped
 
 
