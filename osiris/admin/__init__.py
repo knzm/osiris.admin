@@ -38,4 +38,5 @@ def includeme(config):
     config.include('osiris.admin.resources')
     config.include('osiris.admin.views')
     config.include('osiris.admin.forms')
+    # For convenience, add directives for osiris.auth too.
     config.include('osiris.auth')
