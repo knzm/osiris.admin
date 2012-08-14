@@ -8,13 +8,11 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
     'pyramid',
+    'osiris.admin',
     'SQLAlchemy',
     'transaction',
     'zope.sqlalchemy',
     'pyramid_tm',
-    'pyramid_formalchemy',
-    'pyramid_fanstatic',
-    'fa.jquery',
     'pyramid_jinja2',
     'mako',
     'pyramid_debugtoolbar',
