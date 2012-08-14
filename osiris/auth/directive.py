@@ -27,6 +27,9 @@ def osiris_auth(config, settings_prefix="osiris.auth.",
         def __init__(self, request):
             request.session_factory = session_factory
 
+            from js.bootstrap import bootstrap
+            bootstrap.need()
+
     if account_view_handler is None:
         account_view_handler = AccountView
 

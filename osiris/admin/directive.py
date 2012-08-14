@@ -23,15 +23,19 @@ def AdminRootContextFactory(route_name, session_factory, query_factory,
 def osiris_admin(config, route_name="admin", url_prefix="admin",
                  session_factory=None, query_factory=None,
                  root_factory=None, admin_menu=None):
-    # config.include('pyramid_formalchemy')
     config.include('pyramid_fanstatic')
-    config.include('fa.jquery')
+    # config.include('pyramid_formalchemy')
+    # config.include('fa.jquery')
     # config.include('fa.bootstrap')
 
-    from js.bootstrap import bootstrap
-    def subscriber(event):
-        bootstrap.need()
-    config.add_subscriber(subscriber, IBeforeRender)
+    # from js.bootstrap import bootstrap
+    # def subscriber(event):
+    #     bootstrap.need()
+    # config.add_subscriber(subscriber, IBeforeRender)
+
+    config.override_asset(
+        to_override="pyramid_formalchemy:templates/admin/",
+        override_with="fa.jquery:templates/admin/")
 
     config.override_asset(
         to_override="pyramid_formalchemy:templates/forms/",

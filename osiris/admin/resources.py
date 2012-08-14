@@ -7,7 +7,6 @@ from sqlalchemy import exceptions as sqlalchemy_exceptions
 from pyramid.interfaces import IRequest
 from pyramid.exceptions import NotFound
 from pyramid.security import Allow, Authenticated, ALL_PERMISSIONS
-from pyramid_formalchemy import actions
 
 from osiris.admin import model_config
 from osiris.admin.interface import (
@@ -20,6 +19,7 @@ from osiris.admin.interface import (
     IModel,
     IModelConfig,
     )
+from osiris.admin import actions
 from osiris.admin.utils import get_model_config
 from osiris.auth import get_current_user
 
@@ -77,17 +77,8 @@ class AdminRootContext(object):
 
         request.actions = actions.RequestActions()
 
-        langs = request.registry.settings.get('available_languages', '')
-        if langs:
-            if isinstance(langs, basestring):
-                langs = langs.split()
-            request.actions['languages'] = actions.Languages(*langs)
-
-        themes = request.registry.settings.get('available_themes', '')
-        if themes:
-            if isinstance(themes, basestring):
-                themes = themes.split()
-            request.actions['themes'] = actions.Themes(*themes)
+        from js.bootstrap import bootstrap
+        bootstrap.need()
 
     def fa_url(self, *args, **kwargs):
         return fa_url(self.request, *args, **kwargs)

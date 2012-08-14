@@ -2,13 +2,9 @@
 
 from zope.interface import implementer, provider
 from webhelpers.paginate import Page
-from formalchemy.fields import _pk
 from pyramid import httpexceptions as exc
 from pyramid.exceptions import NotFound
 from pyramid.i18n import get_locale_name
-# from pyramid_formalchemy import actions
-from fa.bootstrap import actions
-# from pyramid_formalchemy.utils import TemplateEngine
 
 from osiris.admin.interface import (
     IModelIndexView,
@@ -23,14 +19,10 @@ from osiris.admin.interface import (
     IModelEditForm,
     IModelViewForm,
     )
+from osiris.admin import actions
 
 
 class BaseModelView(object):
-
-    # engine = TemplateEngine()
-
-    actions_categories = ('buttons',)
-    defaults_actions = actions.defaults_actions
 
     def __init__(self, context, request):
         self.context = context
@@ -256,7 +248,7 @@ class ModelItemView(BaseModelView):
         self.session.merge(form.model)
         self.session.flush()
 
-        location = request.fa_url(request.model_name, _pk(instance))
+        location = request.fa_url(request.model_name, instance.id)
         return exc.HTTPFound(location=location)
 
     def delete(self):
