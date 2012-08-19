@@ -23,7 +23,7 @@ from osiris.admin import actions
 from osiris.admin.utils import get_model_config
 from osiris.auth import get_current_user
 
-__all__ = ['AdminItemContext', 'AdminListContext', 'AdminContext']
+__all__ = ['AdminItemContext', 'AdminListContext', 'AdminRootContext']
 
 
 def fa_url(request, *args, **kwargs):
