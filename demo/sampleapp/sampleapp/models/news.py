@@ -13,9 +13,5 @@ __all__ = ['NewsModel']
 
 @model_config(name='news', title=u"新着記事", provides=INewsModel)
 class NewsModel(BaseModel):
-
-    __tablename__ = 'news'
-
-    id = Column(Integer, primary_key=True, label='ID')
     title = Column(UnicodeText, nullable=False, label=u"タイトル")
     body = Column(UnicodeText, default="", label=u"本文")

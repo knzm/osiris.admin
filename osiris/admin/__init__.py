@@ -2,8 +2,11 @@
 
 import venusian
 
+from model import BaseModel
+
 __all__ = [
     'model_config',
+    'BaseModel',
 ]
 
 

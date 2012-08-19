@@ -21,22 +21,13 @@ user_group = Table(
 
 @provider(IUserModel)
 class UserModel(BaseModel, UserMixin):
-
-    __tablename__ = 'user'
-
-    id = Column(Integer, primary_key=True)
     username = Column(Unicode(255), unique=True)
     _password = Column("password", String(255))
 
 
 @provider(IGroupModel)
 class GroupModel(BaseModel):
-
-    __tablename__ = 'group'
-
-    id = Column(Integer, primary_key=True)
     group_name = Column(Unicode(255), unique=True)
-
     users = relationship('UserModel', backref="groups",
                          secondary=user_group)
 

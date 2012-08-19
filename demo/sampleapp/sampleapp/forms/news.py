@@ -24,8 +24,6 @@ class NewsModelForm(GenericModelForm):
 
     def get_form(self, model_class):
         form = super(NewsModelForm, self).get_form(model_class)
-        form.configure(pk=True)
-        form["id"].set(readonly=True)
         form["body"].set(renderer=TextAreaFieldRenderer)
         return form
 

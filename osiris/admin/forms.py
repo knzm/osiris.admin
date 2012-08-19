@@ -128,7 +128,14 @@ class GenericModelForm(object):
         self.form = self.get_form(model_class)
 
     def get_form(self, model_class):
-        return self.fieldset_class(self.model_class)
+        form = self.fieldset_class(self.model_class)
+        form.configure(pk=True)
+        form["id"].set(readonly=True)
+        form["created_at"].set(readonly=True)
+        form["modified_at"].set(readonly=True)
+        form["creator_name"].set(readonly=True)
+        form["modifier_name"].set(readonly=True)
+        return form
 
     def bind(self, model=None, session=None, data=None, request=None):
         if isinstance(session, ScopedSession):
