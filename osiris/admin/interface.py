@@ -109,14 +109,15 @@ class IModelItemViewFactory(Interface):
 
 
 class IModelGrid(Interface):
-    def bind(self, instances, session=None, data=None, request=None): pass
+    def __call__(self, request): pass
+    def bind(self, instances, session=None, data=None): pass
     def render(self, **kw): pass
     engine = Attribute("Engine")
 
 
 class IModelForm(Interface):
-    def get_form(self, model_class): pass
-    def bind(self, model=None, session=None, data=None, request=None): pass
+    def __call__(self, request): pass
+    def bind(self, model=None, session=None, data=None): pass
     def validate(self): pass
     def sync(self): pass
     def render(self, **kw): pass

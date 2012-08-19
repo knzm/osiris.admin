@@ -3,8 +3,6 @@
 from zope.interface import implementer
 from zope.component import adapter
 
-from pyramid.threadlocal import get_current_request
-
 from sqlalchemy.orm.scoping import ScopedSession
 
 from formalchemy import forms
@@ -46,11 +44,15 @@ class GenericModelGrid(object):
         self.grid = self.grid_class(self.model_class)
         self.grid.configure(pk=1)
 
-    def bind(self, instances, session=None, data=None, request=None):
+    def __call__(self, request):
+        self.request = request
+        return self
+
+    def bind(self, instances, session=None, data=None):
         if isinstance(session, ScopedSession):
             session = session.registry()
         self.grid = self.grid.bind(instances, session=session,
-                                   data=data, request=request)
+                                   data=data, request=self.request)
         self.grid.readonly = True
         self.update_grid(self.grid)
 
@@ -61,16 +63,15 @@ class GenericModelGrid(object):
         from formalchemy import fatypes
 
         if not hasattr(grid, 'edit'):
-            request = get_current_request()
-            translator = get_translator(request=request)
+            translator = get_translator(request=self.request)
             def edit_link(item):
-                url = request.fa_url(
-                    request.model_name, _pk(item), 'edit')
+                url = self.request.fa_url(
+                    self.request.model_name, _pk(item), 'edit')
                 return EDIT_LINK_TEMPLATE % dict(
                     url=url, label=translator('edit'))
             def delete_link(item):
-                url = request.fa_url(
-                    request.model_name, _pk(item), 'delete')
+                url = self.request.fa_url(
+                    self.request.model_name, _pk(item), 'delete')
                 return DELETE_LINK_TEMPLATE % dict(
                     url=url, label=translator('delete'))
             grid.append(Field('edit', fatypes.String, edit_link))
@@ -125,7 +126,11 @@ class GenericModelForm(object):
 
     def __init__(self, model_class):
         self.model_class = model_class
-        self.form = self.get_form(model_class)
+        self.form = self.get_form(self.model_class)
+
+    def __call__(self, request):
+        self.request = request
+        return self
 
     def get_form(self, model_class):
         form = self.fieldset_class(self.model_class)
@@ -137,11 +142,11 @@ class GenericModelForm(object):
         form["modifier_name"].set(readonly=True)
         return form
 
-    def bind(self, model=None, session=None, data=None, request=None):
+    def bind(self, model=None, session=None, data=None):
         if isinstance(session, ScopedSession):
             session = session.registry()
         self.form = self.form.bind(model=model, session=session,
-                                   data=data, request=request)
+                                   data=data, request=self.request)
 
     def validate(self):
         return self.form.validate()

@@ -136,7 +136,7 @@ class ModelListView(BaseModelView):
         page = self.get_page(**kwargs)
 
         grid = self.get_grid()
-        grid.bind(instances=page, session=self.session, request=self.request)
+        grid.bind(instances=page, session=self.session)
 
         if 'pager' not in kwargs:
             pager = page.pager(**self.pager_args)
@@ -167,7 +167,8 @@ class ModelListView(BaseModelView):
     def get_grid(self):
         """return a Grid object"""
         request = self.request
-        grid = request.registry.getAdapter(request.model_class, IModelGrid)
+        factory = request.registry.getAdapter(request.model_class, IModelGrid)
+        grid = factory(request)
         # if not grid.engine:
         #     grid.engine = self.engine
         return grid
@@ -265,10 +266,12 @@ class ModelItemView(BaseModelView):
 
     def get_form(self, form_interface):
         request = self.request
-        form = request.registry.getAdapter(request.model_class, form_interface)
+        factory = request.registry.getAdapter(
+            request.model_class, form_interface)
+        form = factory(request)
         # if not form.engine:
         #     form.engine = self.engine
-        form.bind(session=self.session, request=request)
+        form.bind(session=self.session)
         return form
 
 
