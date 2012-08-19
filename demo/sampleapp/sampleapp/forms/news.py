@@ -13,9 +13,15 @@ from osiris.admin.interface import (
     IModel,
     )
 
-from osiris.admin.forms import GenericModelForm
+from osiris.admin.forms import GenericModelForm, GenericModelGrid
 
 from sampleapp.models import NewsModel
+
+
+@adapter(NewsModel)
+class NewsModelGrid(GenericModelGrid):
+    def update_grid(self, grid):
+        super(NewsModelGrid, self).update_grid(grid)
 
 
 @adapter(NewsModel)
@@ -28,5 +34,6 @@ class NewsModelForm(GenericModelForm):
 
 
 def includeme(config):
+    config.registry.registerAdapter(NewsModelGrid, provided=IModelGrid)
     config.registry.registerAdapter(NewsModelForm, provided=IModelAddForm)
     config.registry.registerAdapter(NewsModelForm, provided=IModelEditForm)
