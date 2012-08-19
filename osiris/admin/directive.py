@@ -67,12 +67,14 @@ def osiris_admin(config, route_name="admin", url_prefix="admin",
     config.osiris_admin_routing(root_factory, route_name, url_prefix)
 
 
-def add_model(config, model, name, title=None, provides=IModel):
+def add_model(config, model, name, title=None, provides=None):
     settings = {
         'model': model,
         'name': name,
         'title': title,
         }
+    if provides is None:
+        provides = IModel
     if isinstance(provides, (tuple, list)):
         interfaces = provides
     else:

@@ -15,11 +15,10 @@ from formalchemy.fields import TextAreaFieldRenderer
 
 from osiris.admin.forms import GenericModelForm
 
-from sampleapp.interface import INewsModel
+from sampleapp.models import NewsModel
 
 
-@implementer(IModelAddForm, IModelEditForm)
-@adapter(INewsModel)
+@adapter(NewsModel)
 class NewsModelForm(GenericModelForm):
 
     def get_form(self, model_class):
@@ -29,4 +28,5 @@ class NewsModelForm(GenericModelForm):
 
 
 def includeme(config):
+    config.registry.registerAdapter(NewsModelForm, provided=IModelAddForm)
     config.registry.registerAdapter(NewsModelForm, provided=IModelEditForm)
