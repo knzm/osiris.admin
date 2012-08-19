@@ -3,6 +3,8 @@
 from zope.interface import implementer
 from zope.component import adapter
 
+from formalchemy.fields import TextAreaFieldRenderer
+
 from osiris.admin.interface import (
     IModelGrid,
     IModelAddForm,
@@ -10,8 +12,6 @@ from osiris.admin.interface import (
     IModelViewForm,
     IModel,
     )
-
-from formalchemy.fields import TextAreaFieldRenderer
 
 from osiris.admin.forms import GenericModelForm
 
