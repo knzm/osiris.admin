@@ -16,7 +16,12 @@ requires = [
     'pyramid_jinja2',
     'mako',
     'pyramid_debugtoolbar',
+    'pyramid_tw2',
     'waitress',
+    ]
+
+dependency_links = [
+    "https://github.com/knzm/pyramid_tw2/tarball/master#egg=pyramid_tw2-1.0.0dev",
     ]
 
 setup(name='sampleapp',
@@ -38,6 +43,7 @@ setup(name='sampleapp',
       zip_safe=False,
       test_suite='sampleapp',
       install_requires=requires,
+      dependency_links=dependency_links,
       entry_points="""\
       [paste.app_factory]
       main = sampleapp:main
