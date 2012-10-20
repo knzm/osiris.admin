@@ -212,7 +212,7 @@ class ModelItemView(BaseModelView):
             return self.render(form=form)
 
         form.sync()
-        self.session.add(form.model)
+        self.session.add(request.model_class)
         self.session.flush()
 
         location = request.fa_url(request.model_name)
